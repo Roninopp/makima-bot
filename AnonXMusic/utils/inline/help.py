@@ -10,7 +10,8 @@ def help_pannel(_, is_sudo, START: Union[bool, int] = None):
     second = [
         InlineKeyboardButton(
             text=_["BACK_BUTTON"],
-            callback_data=f"settingsback_helper",
+            # 👑 FIXED: Changed from settingsback_helper to our custom clean back route
+            callback_data=f"settings_back_helper",
         ),
     ]
     mark = second if START else first
@@ -91,8 +92,8 @@ def help_pannel(_, is_sudo, START: Union[bool, int] = None):
         upl.append(
             [
                 InlineKeyboardButton(
-                    text="Ai/TTS/IMAGE Settings",
-                    callback_data="help_callback hb16",
+                    text=\"Ai/TTS/IMAGE Settings\",
+                    callback_data=\"help_callback hb16\",
                 )
             ]
         )

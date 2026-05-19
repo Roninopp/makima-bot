@@ -21,7 +21,8 @@ def lanuages_keyboard(_):
     rows.append([
         InlineKeyboardButton(
             text=_["BACK_BUTTON"],
-            callback_data="settingsback_helper",
+            # FIXED: Directing to the clean, non-zombie panel callback route
+            callback_data="settings_back_helper",
         ),
         InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close"),
     ])

@@ -29,6 +29,35 @@ from config import BANNED_USERS, LOGGER_ID
 from strings import get_string
 
 
+# 👑 THE MASTER DEFINED MENU BUTTON PANEL
+CLEAN_PM_BUTTONS = [
+    [
+        InlineKeyboardButton(
+            text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
+            url=f"https://t.me/{app.username}?startgroup=true",
+        )
+    ],
+    [
+        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
+        InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
+    ],
+    [
+        InlineKeyboardButton(text="「sᴜᴘᴘmappingᴏʀᴛ」", url=config.SUPPORT_CHAT)
+    ],
+]
+
+
+# 👑 SYSTEM BULLETPROOF HTML CAPTION GENERATOR
+def get_clean_home_caption(mention_name):
+    return (
+        f"✨ <b>нєу</b> {mention_name},🥀\n\n"
+        f"๏ <b>ᴛʜɪs ɪs {app.mention} !</b>\n\n"
+        f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
+        f"──────────────────\n"
+        f"<blockquote>๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs.</blockquote>"
+    )
+
+
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
@@ -93,37 +122,12 @@ async def start_pm(client, message: Message, _):
                     text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>ᴛʀᴀᴄᴋ ɪɴғᴏʀᴍᴀᴛɪᴏɴ</b>.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
                 )
     else:
-        # 👑 CUSTOM INLINE BUTTONS: Cleaned, removed Owner and Source code links completely!
-        custom_pm_buttons = [
-            [
-                InlineKeyboardButton(
-                    text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
-                    url=f"https://t.me/{app.username}?startgroup=true",
-                )
-            ],
-            [
-                InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
-                InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
-            ],
-            [
-                InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
-            ],
-        ]
-        
-        # 👑 PREMIUM GREETING WITH QUOTED TEXT STYLE HARDCODED
-        final_caption = (
-            f"✨ **нєу** {message.from_user.mention},🥀\n\n"
-            f"๏ **ᴛʜɪs ɪs {app.mention} !**\n\n"
-            f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
-            f"──────────────────\n"
-            f"> ๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs."
-        )
-
+        final_caption = get_clean_home_caption(message.from_user.mention)
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
         await message.reply_photo(
             photo=random.choice(config.START_IMG_URL),
             caption=final_caption,
-            reply_markup=InlineKeyboardMarkup(custom_pm_buttons),
+            reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS),
         )
         if await is_on_off(2):
             return await app.send_message(
@@ -220,7 +224,7 @@ async def welcome(client, message: Message):
             print(ex)
 
 
-# 👑 THE MASTER BACK BUTTON CORRECTION ROUTE
+# 👑 BACK BUTTON PROTECTION INTERCEPTOR (Kills Zombie Buttons Forever)
 @app.on_callback_query(filters.regex("settings_back_helper") & ~BANNED_USERS)
 @LanguageStart
 async def settings_back_helper_cb(client, CallbackQuery, _):
@@ -229,34 +233,11 @@ async def settings_back_helper_cb(client, CallbackQuery, _):
     except:
         pass
         
-    custom_pm_buttons = [
-        [
-            InlineKeyboardButton(
-                text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
-                url=f"https://t.me/{app.username}?startgroup=true",
-            )
-        ],
-        [
-            InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
-            InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
-        ],
-        [
-            InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
-        ],
-    ]
-    
-    final_caption = (
-        f"✨ **нєу** {CallbackQuery.from_user.mention},🥀\n\n"
-        f"๏ **ᴛʜɪs ɪs {app.mention} !**\n\n"
-        f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
-        f"──────────────────\n"
-        f"> ๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs."
-    )
-
+    final_caption = get_clean_home_caption(CallbackQuery.from_user.mention)
     try:
         await CallbackQuery.edit_message_caption(
             caption=final_caption,
-            reply_markup=InlineKeyboardMarkup(custom_pm_buttons)
+            reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS)
         )
     except Exception:
         return

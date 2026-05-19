@@ -36,8 +36,8 @@ UPSTREAM_REPO = getenv("UPSTREAM_REPO", "https://github.com/Roninopp/anonxron")
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv("GIT_TOKEN", None)
 
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/amigr8")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/randomlychats")
+SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/SN_Telegram_bots_Stores")
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/+all_1TRgXdM0Mzc9")
 
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", True))
 ASSISTANT_LEAVE_TIME = int(getenv("ASSISTANT_LEAVE_TIME",  5400))
@@ -70,11 +70,11 @@ autoclean = []
 confirmer = {}
 file_cache: dict[str, float] = {}
 
-START_IMG_URL = ["https://te.legra.ph/file/5fd13f2cc0d03bce9f7f2.jpg",
-                 "https://te.legra.ph/file/c15d01b3e6b40ea141dc9.jpg",
-                 "https://te.legra.ph/file/5fd13f2cc0d03bce9f7f2.jpg"]
+START_IMG_URL = ["https://ibb.co/4ZwH7YFF",
+                 "https://ibb.co/4ZwH7YFF",
+                 "https://ibb.co/4ZwH7YFF"]
     
-PING_IMG_URL = getenv("PING_IMG_URL", "https://telegra.ph/file/87f680aead03443f291b0.jpg")
+PING_IMG_URL = getenv("PING_IMG_URL", "https://ibb.co/ycVVgwjz")
 PLAYLIST_IMG_URL = "https://graph.org/file/c95a687e777b55be1c792.jpg"
 STATS_IMG_URL = "https://telegra.ph/file/edd388a42dd2c499fd868.jpg"
 TELEGRAM_AUDIO_URL = "https://telegra.ph/file/492a3bb2e880d19750b79.jpg"

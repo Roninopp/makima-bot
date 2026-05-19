@@ -25,7 +25,6 @@ from AnonXMusic.utils.database import (
 )
 from AnonXMusic.utils.decorators.language import LanguageStart
 from AnonXMusic.utils.formatters import get_readable_time
-from AnonXMusic.utils.inline import help_pannel, private_panel, start_panel
 from config import BANNED_USERS, LOGGER_ID
 from strings import get_string
 
@@ -37,12 +36,17 @@ async def start_pm(client, message: Message, _):
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
         if name[0:4] == "help":
-            keyboard = help_pannel(_)
+            # Direct markup setup to maintain dynamic language translation structure
+            keyboard = [
+                [
+                    InlineKeyboardButton(text=_["S_B_1"], callback_data="settings_back_helper"),
+                ]
+            ]
             await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
             return await message.reply_photo(
                 photo=random.choice(config.START_IMG_URL),
                 caption=_["help_1"].format(config.SUPPORT_CHAT),
-                reply_markup=keyboard,
+                reply_markup=InlineKeyboardMarkup(keyboard),
             )
         if name[0:3] == "sud":
             await sudoers_list(client=client, message=message, _=_)
@@ -90,12 +94,39 @@ async def start_pm(client, message: Message, _):
                     text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>ᴛʀᴀᴄᴋ ɪɴғᴏʀᴍᴀᴛɪᴏɴ</b>.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
                 )
     else:
-        out = private_panel(_)
+        # 👑 CUSTOM INLINE BUTTONS: Cleaned, removed Owner and Source code links completely!
+        custom_pm_buttons = [
+            [
+                InlineKeyboardButton(
+                    text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
+                    url=f"https://t.me/{app.username}?startgroup=true",
+                )
+            ],
+            [
+                InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄᴏᴍᴍᴀheaders」", callback_data="settings_back_helper"),
+                InlineKeyboardButton(text="「ᴜᴩᴅᴀheaderᴇs」", url=config.SUPPORT_CHANNEL),
+            ],
+            [
+                InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT)
+            ],
+        ]
+        
+        # 👑 BLOCKQUOTE STYLING MANIPULATION:
+        # We manually structure your translated greeting and push the secondary lines into blockquote formatting
+        raw_caption = _["start_2"].format(message.from_user.mention, app.mention)
+        if "๏" in raw_caption:
+            base_greeting = raw_caption.split("๏")[0].strip()
+            instruction_text = raw_caption.split("๏")[1].strip()
+            # Wrap the parsed information instruction block inside standard markdown blockquote text
+            final_caption = f"{base_greeting}\n\n> ๏ {instruction_text}"
+        else:
+            final_caption = raw_caption
+
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
         await message.reply_photo(
             photo=random.choice(config.START_IMG_URL),
-            caption=_["start_2"].format(message.from_user.mention, app.mention),
-            reply_markup=InlineKeyboardMarkup(out),
+            caption=final_caption,
+            reply_markup=InlineKeyboardMarkup(custom_pm_buttons),
         )
         if await is_on_off(2):
             return await app.send_message(
@@ -107,25 +138,31 @@ async def start_pm(client, message: Message, _):
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
-    out = start_panel(_)
+    # Group panel uses basic configurations
+    group_buttons = [
+        [
+            InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄომᴍᴀheaders」", url=f"https://t.me/{app.username}?start=help"),
+            InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT),
+        ]
+    ]
     uptime = int(time.time() - _boot_)
     try:
         await message.reply_photo(
-        photo=random.choice(config.START_IMG_URL),
-        caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
-        reply_markup=InlineKeyboardMarkup(out),
-    )
+            photo=random.choice(config.START_IMG_URL),
+            caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
+            reply_markup=InlineKeyboardMarkup(group_buttons),
+        )
         return await add_served_chat(message.chat.id)
     except ChannelPrivate:
         return
     except SlowmodeWait as e:
-        asyncio.sleep(e.value)
+        await asyncio.sleep(e.value)
         try:
             await message.reply_photo(
-        photo=random.choice(config.START_IMG_URL),
-        caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
-        reply_markup=InlineKeyboardMarkup(out),
-        )
+                photo=random.choice(config.START_IMG_URL),
+                caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
+                reply_markup=InlineKeyboardMarkup(group_buttons),
+            )
             return await add_served_chat(message.chat.id)
         except:
             return
@@ -165,7 +202,12 @@ async def welcome(client, message: Message):
                         await app.send_message(LOGGER_ID, f"This group has been blacklisted automatically due to myanmar characters in the chat title, description or message \n Title:{ch.title} \n ID:{message.chat.id}")
                         return await app.leave_chat(message.chat.id)
 
-                out = start_panel(_)
+                group_buttons = [
+                    [
+                        InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄომᴍᴀheaders」", url=f"https://t.me/{app.username}?start=help"),
+                        InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT),
+                    ]
+                ]
                 await message.reply_photo(
                     photo=random.choice(config.START_IMG_URL),
                     caption=_["start_3"].format(
@@ -174,7 +216,7 @@ async def welcome(client, message: Message):
                         message.chat.title,
                         app.mention,
                     ),
-                    reply_markup=InlineKeyboardMarkup(out),
+                    reply_markup=InlineKeyboardMarkup(group_buttons),
                 )
                 await add_served_chat(message.chat.id)
                 await message.stop_propagation()

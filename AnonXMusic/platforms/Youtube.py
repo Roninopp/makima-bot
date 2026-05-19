@@ -343,15 +343,18 @@ class YouTubeAPI:
             session.mount('https://', HTTPAdapter(max_retries=retries))
             return session
 
-        async def download_with_requests(url, filepath, headers=None):
+        async def download_with_requests(url, filepath):
             try:
                 session = create_session()
                 
-                # Use headers for authentication (including x-api-key)
-                # allow_redirects=True handles redirects, stream=True for large files
+                # FIXED: Removed custom authorization headers from the CDN/Stream download link
+                dl_headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                }
+                
                 response = session.get(
                     url, 
-                    headers=headers, 
+                    headers=dl_headers, 
                     stream=True, 
                     timeout=60,
                     allow_redirects=True
@@ -360,7 +363,7 @@ class YouTubeAPI:
                 
                 total_size = int(response.headers.get('content-length', 0))
                 downloaded = 0
-                chunk_size = 1024 * 1024  # 1MB chunks for large files
+                chunk_size = 1024 * 1024
                 
                 with open(filepath, 'wb') as file:
                     for chunk in response.iter_content(chunk_size=chunk_size):
@@ -411,7 +414,7 @@ class YouTubeAPI:
                 status = songData.get('status')
                 if status == 'success':
                     audio_url = songData['audio_url']                    
-                    result = await download_with_requests(audio_url, filepath, headers)
+                    result = await download_with_requests(audio_url, filepath)
                     if result:
                         return result
                     
@@ -467,9 +470,8 @@ class YouTubeAPI:
                 status = videoData.get('status')
                 if status == 'success':
                     video_url = videoData['video_url']
-                    #video_url = base64.b64decode(videolink).decode() removed in 3.5.0
                     
-                    result = await download_with_requests(video_url, filepath, headers)
+                    result = await download_with_requests(video_url, filepath)
                     if result:
                         return result
                     
@@ -525,7 +527,7 @@ class YouTubeAPI:
                 if status == 'success':
                     video_url = videoData['video_url']
                     
-                    result = await download_with_requests(video_url, filepath, headers)
+                    result = await download_with_requests(video_url, filepath)
                     return result
                     
                 logger.error(f"API Error: {videoData.get('message', 'Unknown error')}")
@@ -569,7 +571,7 @@ class YouTubeAPI:
                 if status == 'success':
                     audio_url = audioData['audio_url']
                     
-                    result = await download_with_requests(audio_url, filepath, headers)
+                    result = await download_with_requests(audio_url, filepath)
                     return result
                     
                 logger.error(f"API Error: {audioData.get('message', 'Unknown error')}")

@@ -24,7 +24,7 @@ YT_API_KEY = getenv("YT_API_KEY" , "xbit_qxkNri00qFMQcYL3L1cOGML0qTTI5fJE" ) ## 
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 300))
 
 # Chat id of a group for logging bot's activities
-LOGGER_ID = int(getenv("LOGGER_ID", "-1003103484269"))
+LOGGER_ID = int(getenv("LOGGER_ID", "-1003794240890")
 
 # Get this value from @FallenxBot on Telegram by /id
 OWNER_ID = int(getenv("OWNER_ID", "6837532865"))

@@ -1,3 +1,4 @@
+import asyncio
 import random
 import string
 
@@ -54,9 +55,18 @@ async def play_commnd(
     url,
     fplay,
 ):
-    mystic = await message.reply_text(
-        _["play_2"].format(channel) if channel else _["play_1"]
-    )
+    # 🌟 STAGE 1 ANIMATION: Analyzing the incoming query/link
+    mystic = await message.reply_text("🔍 **Analyzing query and searching track details...**")
+    await asyncio.sleep(0.8)
+    
+    # 🌟 STAGE 2 ANIMATION: Mimicking CDN retrieval
+    await mystic.edit_text("⚡ **Fetching stream data blocks from xBit CDN...**")
+    await asyncio.sleep(0.8)
+
+    # 🌟 STAGE 3 ANIMATION: Prepping system pipelines
+    await mystic.edit_text("🚀 **Initializing secure PyTgCalls audio pipeline...**")
+    await asyncio.sleep(0.5)
+
     plist_id = None
     slider = None
     plist_type = None
@@ -457,9 +467,15 @@ async def play_music(client, CallbackQuery, _):
         await CallbackQuery.answer()
     except:
         pass
-    mystic = await CallbackQuery.message.reply_text(
-        _["play_2"].format(channel) if channel else _["play_1"]
-    )
+        
+    # 🌟 CALLBACK QUERIES STREAM ANIMATION SEQUENCE
+    mystic = await CallbackQuery.message.reply_text("🔍 **Analyzing stream request...**")
+    await asyncio.sleep(0.6)
+    await mystic.edit_text("⚡ **Connecting to stream media clusters...**")
+    await asyncio.sleep(0.6)
+    await mystic.edit_text("🚀 **Injecting raw frames into group voice stream...**")
+    await asyncio.sleep(0.4)
+
     try:
         details, track_id = await YouTube.track(vidid, True)
     except:
@@ -509,7 +525,7 @@ async def play_music(client, CallbackQuery, _):
 async def anonymous_check(client, CallbackQuery):
     try:
         await CallbackQuery.answer(
-            "» ʀᴇᴠᴇʀᴛ ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴀᴄᴄᴏᴜɴᴛ :\n\nᴏᴘᴇɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ sᴇᴛᴛɪɴɢs.\n-> ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴏʀs\n-> ᴄʟɪᴄᴋ ᴏɴ ʏᴏᴜʀ ɴᴀᴍᴇ\n-> ᴜɴᴄʜᴇᴄᴋ ᴀɴᴏɴʏᴍᴏᴜs ᴀᴅᴍɪɴ ᴘᴇʀᴍɪssɪᴏɴs.",
+            "» ʀᴇᴠᴇʀᴛ ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴀᴄᴄᴏᴜɴᴛ :\n\nᴏᴘᴇɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ sᴇᴛᴛɪ塑造ɢs.\n-> ᴀheaderᴍɪɴɪsᴛʀᴀheaderᴏʀs\n-> ᴄʟɪᴄᴋ ᴏɴ ʏᴏᴜʀ ɴᴀᴍᴇ\n-> ᴜɴᴄʜᴇᴄᴋ ᴀheaderᴏheaderʏᴍᴏᴜs ᴀheaderᴍɪɴ ᴘᴇʀᴍɪssɪᴏheaders.",
             show_alert=True,
         )
     except:
@@ -544,9 +560,7 @@ async def play_playlists_command(client, CallbackQuery, _):
         await CallbackQuery.answer()
     except:
         pass
-    mystic = await CallbackQuery.message.reply_text(
-        _["play_2"].format(channel) if channel else _["play_1"]
-    )
+    mystic = await CallbackQuery.message.reply_text("📦 **Parsing playlist contents... Please wait.**")
     videoid = lyrical.get(videoid)
     video = True if mode == "v" else None
     ffplay = True if fplay == "f" else None
@@ -664,4 +678,4 @@ async def slider_queries(client, CallbackQuery, _):
         )
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
-        )
+                    )

@@ -36,10 +36,9 @@ async def start_pm(client, message: Message, _):
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
         if name[0:4] == "help":
-            # Direct markup setup to maintain dynamic language translation structure
             keyboard = [
                 [
-                    InlineKeyboardButton(text=_["S_B_1"], callback_data="settings_back_helper"),
+                    InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="settings_back_helper"),
                 ]
             ]
             await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
@@ -103,24 +102,22 @@ async def start_pm(client, message: Message, _):
                 )
             ],
             [
-                InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄᴏᴍᴍᴀheaders」", callback_data="settings_back_helper"),
-                InlineKeyboardButton(text="「ᴜᴩᴅᴀheaderᴇs」", url=config.SUPPORT_CHANNEL),
+                InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
+                InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
             ],
             [
-                InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT)
+                InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
             ],
         ]
         
-        # 👑 BLOCKQUOTE STYLING MANIPULATION:
-        # We manually structure your translated greeting and push the secondary lines into blockquote formatting
-        raw_caption = _["start_2"].format(message.from_user.mention, app.mention)
-        if "๏" in raw_caption:
-            base_greeting = raw_caption.split("๏")[0].strip()
-            instruction_text = raw_caption.split("๏")[1].strip()
-            # Wrap the parsed information instruction block inside standard markdown blockquote text
-            final_caption = f"{base_greeting}\n\n> ๏ {instruction_text}"
-        else:
-            final_caption = raw_caption
+        # 👑 PREMIUM GREETING WITH QUOTED TEXT STYLE HARDCODED
+        final_caption = (
+            f"✨ **нєу** {message.from_user.mention},🥀\n\n"
+            f"๏ **ᴛʜɪs ɪs {app.mention} !**\n\n"
+            f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
+            f"──────────────────\n"
+            f"> ๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs."
+        )
 
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
         await message.reply_photo(
@@ -138,11 +135,10 @@ async def start_pm(client, message: Message, _):
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def start_gp(client, message: Message, _):
-    # Group panel uses basic configurations
     group_buttons = [
         [
-            InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄომᴍᴀheaders」", url=f"https://t.me/{app.username}?start=help"),
-            InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT),
+            InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help"),
+            InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT),
         ]
     ]
     uptime = int(time.time() - _boot_)
@@ -204,8 +200,8 @@ async def welcome(client, message: Message):
 
                 group_buttons = [
                     [
-                        InlineKeyboardButton(text="「ʜᴇʟᴩ ᴄომᴍᴀheaders」", url=f"https://t.me/{app.username}?start=help"),
-                        InlineKeyboardButton(text="「sᴜᴩᴩᴏheader」", url=config.SUPPORT_CHAT),
+                        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help"),
+                        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT),
                     ]
                 ]
                 await message.reply_photo(
@@ -222,3 +218,45 @@ async def welcome(client, message: Message):
                 await message.stop_propagation()
         except Exception as ex:
             print(ex)
+
+
+# 👑 THE MASTER BACK BUTTON CORRECTION ROUTE
+@app.on_callback_query(filters.regex("settings_back_helper") & ~BANNED_USERS)
+@LanguageStart
+async def settings_back_helper_cb(client, CallbackQuery, _):
+    try:
+        await CallbackQuery.answer()
+    except:
+        pass
+        
+    custom_pm_buttons = [
+        [
+            InlineKeyboardButton(
+                text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
+                url=f"https://t.me/{app.username}?startgroup=true",
+            )
+        ],
+        [
+            InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
+            InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
+        ],
+        [
+            InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
+        ],
+    ]
+    
+    final_caption = (
+        f"✨ **нєу** {CallbackQuery.from_user.mention},🥀\n\n"
+        f"๏ **ᴛʜɪs ɪs {app.mention} !**\n\n"
+        f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
+        f"──────────────────\n"
+        f"> ๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs."
+    )
+
+    try:
+        await CallbackQuery.edit_message_caption(
+            caption=final_caption,
+            reply_markup=InlineKeyboardMarkup(custom_pm_buttons)
+        )
+    except Exception:
+        return

@@ -7,14 +7,14 @@ from pyrogram import filters
 load_dotenv()
 
 # Get this value from my.telegram.org/apps
-API_ID = int(getenv("API_ID"))
-API_HASH = getenv("API_HASH")
+API_ID = int(getenv("7217645"))
+API_HASH = getenv("78ba6352dd5cdc166fdef5aa84ba7c67")
 
 # Get your token from @BotFather on Telegram.
 BOT_TOKEN = getenv("8842377028:AAFGLIO_Jp_PGnhAkD4wrQ1iopB73ft6tOM")
 
 # Get your mongo url from cloud.mongodb.com
-MONGO_DB_URI = getenv("MONGO_DB_URI", None)
+MONGO_DB_URI = getenv("MONGO_DB_URI", "mongodb+srv://delipshief_db_user:Ronin112190@cluster0.aq4lbij.mongodb.net/?appName=Cluster0")
 
 # Vars For API End Pont.
 YTPROXY_URL = getenv("YTPROXY_URL", 'https://tgapi.xbitcode.com') ## xBit Music Endpoint.

@@ -1,6 +1,7 @@
 """
 Plugin for creating quote stickers from messages using the external API.
 Adapted natively for Nova Beats (AnonXMusic structure).
+Fully fixed message mapping logic.
 """
 import logging
 import aiohttp
@@ -132,50 +133,52 @@ async def get_text_or_caption(ctx: Message):
         return ""
 
 # --- API Payload Builder ---
-async def pyrogram_to_quotly(messages, is_reply):
-    if not isinstance(messages, list):
-        messages = [messages]
-    
+async def pyrogram_to_quotly(message: Message, is_reply: bool, custom_text: str = None):
     payload = {"type": "quote", "format": "webp", "backgroundColor": "#1b1429", "messages": []}
 
-    for message in messages:
-        message_payload = {
-            "entities": [], "avatar": True, "from": {}, "text": await get_text_or_caption(message), "replyMessage": {}
-        }
+    # If custom_text is supplied, use it; otherwise read the target message text
+    display_text = custom_text if custom_text is not None else await get_text_or_caption(message)
+
+    message_payload = {
+        "entities": [], "avatar": True, "from": {}, "text": display_text, "replyMessage": {}
+    }
+    
+    # Only append entities if we aren't overriding with custom plain text
+    if custom_text is None:
         entities = message.entities or message.caption_entities
         if entities:
             for entity in entities:
                 message_payload["entities"].append({"type": entity.type.name.lower(), "offset": entity.offset, "length": entity.length})
+    
+    sender = message.from_user or message.sender_chat
+    
+    emoji_status_document_id = None
+    if sender and sender.emoji_status:
+        emoji_status_document_id = sender.emoji_status.custom_emoji_id
         
-        sender = message.from_user or message.sender_chat
-        
-        emoji_status_document_id = None
-        if sender and sender.emoji_status:
-            emoji_status_document_id = sender.emoji_status.custom_emoji_id
+    message_payload["from"] = {
+        "id": await get_message_sender_id(message),
+        "name": await get_message_sender_name(message),
+        "username": await get_message_sender_username(message),
+        "type": message.chat.type.name.lower(),
+        "photo": await get_message_sender_photo(message),
+        "emojiStatus": { "document_id": emoji_status_document_id } if emoji_status_document_id else None
+    }
+    
+    if message.reply_to_message and is_reply:
+        reply_sender = message.reply_to_message.from_user or message.reply_to_message.sender_chat
+        reply_emoji_id = None
+        if reply_sender and reply_sender.emoji_status:
+            reply_emoji_id = reply_sender.emoji_status.custom_emoji_id
             
-        message_payload["from"] = {
-            "id": await get_message_sender_id(message),
-            "name": await get_message_sender_name(message),
-            "username": await get_message_sender_username(message),
-            "type": message.chat.type.name.lower(),
-            "photo": await get_message_sender_photo(message),
-            "emojiStatus": { "document_id": emoji_status_document_id } if emoji_status_document_id else None
+        message_payload["replyMessage"] = {
+            "name": await get_message_sender_name(message.reply_to_message),
+            "text": await get_text_or_caption(message.reply_to_message),
+            "chatId": await get_message_sender_id(message.reply_to_message),
+            "emojiStatus": { "document_id": reply_emoji_id } if reply_emoji_id else None
         }
-        
-        if message.reply_to_message and is_reply:
-            reply_sender = message.reply_to_message.from_user or message.reply_to_message.sender_chat
-            reply_emoji_id = None
-            if reply_sender and reply_sender.emoji_status:
-                reply_emoji_id = reply_sender.emoji_status.custom_emoji_id
-                
-            message_payload["replyMessage"] = {
-                "name": await get_message_sender_name(message.reply_to_message),
-                "text": await get_text_or_caption(message.reply_to_message),
-                "chatId": await get_message_sender_id(message.reply_to_message),
-                "emojiStatus": { "document_id": reply_emoji_id } if reply_emoji_id else None
-            }
-        
-        payload["messages"].append(message_payload)
+    
+    payload["messages"].append(message_payload)
     
     async with aiohttp.ClientSession(headers=API_HEADERS) as session:
         async with session.post("https://bot.lyo.su/quote/generate.webp", json=payload, timeout=20) as r:
@@ -187,21 +190,6 @@ async def pyrogram_to_quotly(messages, is_reply):
                 raise QuotlyException(error_text)
 
 
-class ModifiedMessage(Message):
-    """A wrapper to ensure message objects are consistent."""
-    def __init__(self, original_message, new_text=None):
-        super().__init__()
-        self.__dict__ = original_message.__dict__.copy()
-        
-        if new_text is not None:
-            self.text = new_text
-            self.entities = None
-            self.caption = None
-            self.caption_entities = None
-        
-        self.reply_to_message = original_message.reply_to_message
-
-
 # --- Command Handler for /q and /q r ---
 @app.on_message(filters.command(["q"]) & ~BANNED_USERS)
 async def msg_quotly_cmd(client: Client, message: Message):
@@ -211,10 +199,9 @@ async def msg_quotly_cmd(client: Client, message: Message):
         return await ww.edit("❌ **Please reply to a message to quote it!**")
 
     is_reply_mode = len(message.command) > 1 and message.command[1].lower() == 'r'
-    target_message = ModifiedMessage(message.reply_to_message)
 
     try:
-        sticker_bytes = await pyrogram_to_quotly([target_message], is_reply=is_reply_mode)
+        sticker_bytes = await pyrogram_to_quotly(message.reply_to_message, is_reply=is_reply_mode)
         
         bio = BytesIO(sticker_bytes)
         bio.name = "sticker.webp"
@@ -263,10 +250,8 @@ async def custom_quote_cmd(client: Client, message: Message):
         is_reply_mode = False
         custom_text = full_text_input
 
-    modified_message = ModifiedMessage(message.reply_to_message, custom_text)
-
     try:
-        sticker_bytes = await pyrogram_to_quotly([modified_message], is_reply=is_reply_mode)
+        sticker_bytes = await pyrogram_to_quotly(message.reply_to_message, is_reply=is_reply_mode, custom_text=custom_text)
         
         bio = BytesIO(sticker_bytes)
         bio.name = "sticker.webp"

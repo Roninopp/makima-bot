@@ -3,6 +3,7 @@ import re
 import random
 import asyncio
 import aiohttp
+import html
 
 from pyrogram import filters
 from pyrogram.enums import ChatType
@@ -31,11 +32,14 @@ from strings import get_string
 
 
 # 👑 SYSTEM BULLETPROOF HTML CAPTION GENERATOR
-def get_clean_home_caption(mention_name):
+def get_clean_home_caption(user_id, first_name):
+    # This completely sanitizes the user's name and manually builds a perfectly strict HTML tag
+    safe_name = html.escape(first_name)
+    user_mention = f'<a href="tg://user?id={user_id}">{safe_name}</a>'
     return (
-        f"✨ <b>нєу</b> {mention_name},🥀\n\n"
-        f"๏ <b>ᴛʜɪs ɪs {app.mention} !</b>\n\n"
-        f"➻ ᴀ ғᴀsᴛ & ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
+        f"✨ <b>нєу</b> {user_mention},🥀\n\n"
+        f"๏ <b>ᴛʜɪs ɪs @{app.username} !</b>\n\n"
+        f"➻ ᴀ ғᴀsᴛ &amp; ᴘᴏᴡᴇʀғᴜʟ ᴛᴇʟᴇɢʀᴀᴍ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ʙᴏᴛ ᴡɪᴛʜ sᴏᴍᴇ ᴀᴡᴇsᴏᴍᴇ ғᴇᴀᴛᴜʀᴇs.\n"
         f"──────────────────\n"
         f"<blockquote>๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs.</blockquote>"
     )
@@ -148,7 +152,7 @@ async def start_pm(client, message: Message, _):
                     text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>ᴛʀᴀᴄᴋ ɪɴғᴏʀᴍᴀᴛɪᴏɴ</b>.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
                 )
     else:
-        final_caption = get_clean_home_caption(message.from_user.mention)
+        final_caption = get_clean_home_caption(message.from_user.id, message.from_user.first_name)
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
         
         # 🚀 ROBUST HTTP API BYPASS INJECTION
@@ -285,7 +289,7 @@ async def settings_back_helper_cb(client, CallbackQuery, _):
     except:
         pass
         
-    final_caption = get_clean_home_caption(CallbackQuery.from_user.mention)
+    final_caption = get_clean_home_caption(CallbackQuery.from_user.id, CallbackQuery.from_user.first_name)
     
     # 🚀 HTTP API BYPASS INJECTION
     try:

@@ -35,14 +35,15 @@ CLEAN_PM_BUTTONS = [
         InlineKeyboardButton(
             text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
             url=f"https://t.me/{app.username}?startgroup=true",
+            style="success",
         )
     ],
     [
-        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
-        InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
+        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper", style="primary"),
+        InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL, style="primary"),
     ],
     [
-        InlineKeyboardButton(text="「sᴜᴘᴘmappingᴏʀᴛ」", url=config.SUPPORT_CHAT)
+        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT, style="danger")
     ],
 ]
 
@@ -67,7 +68,7 @@ async def start_pm(client, message: Message, _):
         if name[0:4] == "help":
             keyboard = [
                 [
-                    InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="settings_back_helper"),
+                    InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="settings_back_helper", style="danger"),
                 ]
             ]
             await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
@@ -104,8 +105,8 @@ async def start_pm(client, message: Message, _):
             key = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text=_["S_B_8"], url=link),
-                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
+                        InlineKeyboardButton(text=_["S_B_8"], url=link, style="primary"),
+                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT, style="danger"),
                     ],
                 ]
             )
@@ -141,8 +142,8 @@ async def start_pm(client, message: Message, _):
 async def start_gp(client, message: Message, _):
     group_buttons = [
         [
-            InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help"),
-            InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT),
+            InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help", style="primary"),
+            InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT, style="danger"),
         ]
     ]
     uptime = int(time.time() - _boot_)
@@ -204,8 +205,8 @@ async def welcome(client, message: Message):
 
                 group_buttons = [
                     [
-                        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help"),
-                        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT),
+                        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", url=f"https://t.me/{app.username}?start=help", style="primary"),
+                        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT, style="danger"),
                     ]
                 ]
                 await message.reply_photo(

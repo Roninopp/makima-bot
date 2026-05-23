@@ -30,23 +30,6 @@ from config import BANNED_USERS, LOGGER_ID
 from strings import get_string
 
 
-# 👑 THE RAW HTTP MENU BUTTON PANEL (BYPASSES PYROGRAM FOR COLORS)
-RAW_CLEAN_PM_BUTTONS = {
-    "inline_keyboard": [
-        [
-            {"text": "• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •", "url": f"https://t.me/{app.username}?startgroup=true", "style": "success"}
-        ],
-        [
-            {"text": "「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", "callback_data": "settings_back_helper", "style": "primary"},
-            {"text": "「ᴜᴘᴅᴀᴛᴇs」", "url": config.SUPPORT_CHANNEL, "style": "primary"}
-        ],
-        [
-            {"text": "「sᴜᴘᴘᴏʀᴛ」", "url": config.SUPPORT_CHAT, "style": "danger"}
-        ]
-    ]
-}
-
-
 # 👑 SYSTEM BULLETPROOF HTML CAPTION GENERATOR
 def get_clean_home_caption(mention_name):
     return (
@@ -56,6 +39,49 @@ def get_clean_home_caption(mention_name):
         f"──────────────────\n"
         f"<blockquote>๏ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʜᴇʟᴘ ʙᴜᴛᴛᴏɴ ᴛᴏ ɢᴇᴛ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ᴀʙᴏᴜᴛ ᴍʏ ᴍᴏᴅᴜʟᴇs ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅs.</blockquote>"
     )
+
+# URL SANITIZER: Telegram API outright rejects buttons if URLs aren't perfect.
+def safe_url(link):
+    if not link:
+        return "https://t.me/telegram"
+    if link.startswith("@"):
+        return f"https://t.me/{link[1:]}"
+    return link
+
+# DYNAMIC HTTP BUTTON GENERATOR
+def get_color_buttons(username):
+    bot_user = username if username else "telegram"
+    return {
+        "inline_keyboard": [
+            [
+                {"text": "• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •", "url": f"https://t.me/{bot_user}?startgroup=true", "style": "success"}
+            ],
+            [
+                {"text": "「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", "callback_data": "settings_back_helper", "style": "primary"},
+                {"text": "「ᴜᴘᴅᴀᴛᴇs」", "url": safe_url(config.SUPPORT_CHANNEL), "style": "primary"}
+            ],
+            [
+                {"text": "「sᴜᴘᴘᴏʀᴛ」", "url": safe_url(config.SUPPORT_CHAT), "style": "danger"}
+            ]
+        ]
+    }
+
+# FALLBACK BUTTONS
+CLEAN_PM_BUTTONS = [
+    [
+        InlineKeyboardButton(
+            text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
+            url=f"https://t.me/{app.username}?startgroup=true",
+        )
+    ],
+    [
+        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
+        InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
+    ],
+    [
+        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
+    ],
+]
 
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
@@ -125,17 +151,35 @@ async def start_pm(client, message: Message, _):
         final_caption = get_clean_home_caption(message.from_user.mention)
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
         
-        # 🚀 HTTP API BYPASS INJECTION
+        # 🚀 ROBUST HTTP API BYPASS INJECTION
         url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/sendPhoto"
         payload = {
             "chat_id": message.chat.id,
             "photo": random.choice(config.START_IMG_URL),
             "caption": final_caption,
             "parse_mode": "HTML",
-            "reply_markup": RAW_CLEAN_PM_BUTTONS
+            "reply_markup": get_color_buttons(app.username)
         }
-        async with aiohttp.ClientSession() as session:
-            await session.post(url, json=payload)
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload) as resp:
+                    if resp.status != 200:
+                        error_text = await resp.text()
+                        print(f"🔥 HTTP API BYPASS FAILED: {error_text}")
+                        # Fallback to standard Pyrogram if API rejects it
+                        await message.reply_photo(
+                            photo=random.choice(config.START_IMG_URL),
+                            caption=final_caption,
+                            reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS),
+                        )
+        except Exception as e:
+            print(f"🔥 HTTP REQUEST CRASHED: {e}")
+            await message.reply_photo(
+                photo=random.choice(config.START_IMG_URL),
+                caption=final_caption,
+                reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS),
+            )
             
         if await is_on_off(2):
             return await app.send_message(
@@ -251,9 +295,15 @@ async def settings_back_helper_cb(client, CallbackQuery, _):
             "message_id": CallbackQuery.message.id,
             "caption": final_caption,
             "parse_mode": "HTML",
-            "reply_markup": RAW_CLEAN_PM_BUTTONS
+            "reply_markup": get_color_buttons(app.username)
         }
         async with aiohttp.ClientSession() as session:
-            await session.post(url, json=payload)
+            async with session.post(url, json=payload) as resp:
+                if resp.status != 200:
+                    print(f"🔥 HTTP API EDIT FAILED: {await resp.text()}")
+                    await CallbackQuery.edit_message_caption(
+                        caption=final_caption,
+                        reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS)
+                    )
     except Exception:
         return

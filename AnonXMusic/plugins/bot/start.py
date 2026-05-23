@@ -2,6 +2,7 @@ import time
 import re
 import random
 import asyncio
+import aiohttp
 
 from pyrogram import filters
 from pyrogram.enums import ChatType
@@ -29,22 +30,21 @@ from config import BANNED_USERS, LOGGER_ID
 from strings import get_string
 
 
-# 👑 THE MASTER DEFINED MENU BUTTON PANEL
-CLEAN_PM_BUTTONS = [
-    [
-        InlineKeyboardButton(
-            text="• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •",
-            url=f"https://t.me/{app.username}?startgroup=true",
-        )
-    ],
-    [
-        InlineKeyboardButton(text="「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", callback_data="settings_back_helper"),
-        InlineKeyboardButton(text="「ᴜᴘᴅᴀᴛᴇs」", url=config.SUPPORT_CHANNEL),
-    ],
-    [
-        InlineKeyboardButton(text="「sᴜᴘᴘᴏʀᴛ」", url=config.SUPPORT_CHAT)
-    ],
-]
+# 👑 THE RAW HTTP MENU BUTTON PANEL (BYPASSES PYROGRAM FOR COLORS)
+RAW_CLEAN_PM_BUTTONS = {
+    "inline_keyboard": [
+        [
+            {"text": "• ʌᴅᴅ ᴍᴇ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ •", "url": f"https://t.me/{app.username}?startgroup=true", "style": "success"}
+        ],
+        [
+            {"text": "「ʜᴇʟᴘ ᴄᴏᴍᴍᴀɴᴅs」", "callback_data": "settings_back_helper", "style": "primary"},
+            {"text": "「ᴜᴘᴅᴀᴛᴇs」", "url": config.SUPPORT_CHANNEL, "style": "primary"}
+        ],
+        [
+            {"text": "「sᴜᴘᴘᴏʀᴛ」", "url": config.SUPPORT_CHAT, "style": "danger"}
+        ]
+    ]
+}
 
 
 # 👑 SYSTEM BULLETPROOF HTML CAPTION GENERATOR
@@ -124,11 +124,19 @@ async def start_pm(client, message: Message, _):
     else:
         final_caption = get_clean_home_caption(message.from_user.mention)
         await message.reply_sticker("CAACAgUAAx0CdQO5IgACMTplUFOpwDjf-UC7pqVt9uG659qxWQACfQkAAghYGFVtSkRZ5FZQXDME")
-        await message.reply_photo(
-            photo=random.choice(config.START_IMG_URL),
-            caption=final_caption,
-            reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS),
-        )
+        
+        # 🚀 HTTP API BYPASS INJECTION
+        url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/sendPhoto"
+        payload = {
+            "chat_id": message.chat.id,
+            "photo": random.choice(config.START_IMG_URL),
+            "caption": final_caption,
+            "parse_mode": "HTML",
+            "reply_markup": RAW_CLEAN_PM_BUTTONS
+        }
+        async with aiohttp.ClientSession() as session:
+            await session.post(url, json=payload)
+            
         if await is_on_off(2):
             return await app.send_message(
                 chat_id=config.LOGGER_ID,
@@ -224,7 +232,7 @@ async def welcome(client, message: Message):
             print(ex)
 
 
-# 👑 BACK BUTTON PROTECTION INTERCEPTOR (Kills Zombie Buttons Forever)
+# 👑 BACK BUTTON PROTECTION INTERCEPTOR
 @app.on_callback_query(filters.regex("settings_back_helper") & ~BANNED_USERS)
 @LanguageStart
 async def settings_back_helper_cb(client, CallbackQuery, _):
@@ -234,10 +242,18 @@ async def settings_back_helper_cb(client, CallbackQuery, _):
         pass
         
     final_caption = get_clean_home_caption(CallbackQuery.from_user.mention)
+    
+    # 🚀 HTTP API BYPASS INJECTION
     try:
-        await CallbackQuery.edit_message_caption(
-            caption=final_caption,
-            reply_markup=InlineKeyboardMarkup(CLEAN_PM_BUTTONS)
-        )
+        url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/editMessageCaption"
+        payload = {
+            "chat_id": CallbackQuery.message.chat.id,
+            "message_id": CallbackQuery.message.id,
+            "caption": final_caption,
+            "parse_mode": "HTML",
+            "reply_markup": RAW_CLEAN_PM_BUTTONS
+        }
+        async with aiohttp.ClientSession() as session:
+            await session.post(url, json=payload)
     except Exception:
         return

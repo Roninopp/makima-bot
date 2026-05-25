@@ -1,17 +1,20 @@
 import asyncio
 import requests
+import json
+import aiohttp
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType
-from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import ChatMemberUpdated
 
 from AnonXMusic import app 
 from AnonXMusic.core.mongo import mongodb
+import config # Imported to grab your BOT_TOKEN for the bypass
 
 welcome_db = mongodb.welcome_status
 
-print("✅ WELCOME.PY: Loaded successfully! UI Upgraded.")
+print("✅ WELCOME.PY: Loaded successfully! HTTP Bypass & Red Button Active.")
 
 BACKGROUND_URL = "https://i.ibb.co/WvYsLxyg/background.png"
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
@@ -63,10 +66,9 @@ async def process_welcome(client, chat, user):
             bg = Image.open(BytesIO(bg_response.content)).convert("RGBA")
             bg = bg.resize((1280, 720))
             
-            # Fetch font once, load it in two different sizes
             font_data = requests.get(FONT_URL).content
             font_normal = ImageFont.truetype(BytesIO(font_data), 55)
-            font_huge = ImageFont.truetype(BytesIO(font_data), 100) # Huge font for WELCOME
+            font_huge = ImageFont.truetype(BytesIO(font_data), 100) 
         except Exception as e:
             print(f"❌ Asset Error: {e}")
             return None
@@ -80,16 +82,13 @@ async def process_welcome(client, chat, user):
         pfp = pfp.resize(pfp_size)
         pfp = circle_crop(pfp)
         
-        # Nudged the profile picture left and up to center it in the ring!
-        bg.paste(pfp, (805, 150), pfp)
+        # Using your exact 805 coordinate to center it perfectly!
+        bg.paste(pfp, (810, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
         text_color = "white"
         
-        # Draw the massive WELCOME text at the top
         draw.text((80, 250), "WELCOME!", fill=text_color, font=font_huge)
-        
-        # Draw the ID and Username below it
         draw.text((80, 420), f"ID : {user_id}", fill=text_color, font=font_normal)
         draw.text((80, 520), f"USERNAME : {username}", fill=text_color, font=font_normal)
         
@@ -102,19 +101,42 @@ async def process_welcome(client, chat, user):
     
     if card_io:
         bot_username = client.me.username if client.me else "BeatNovaBot"
-        markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{bot_username}?startgroup=true")]
-        ])
+        
+        # 🚀 HTTP API BYPASS INJECTION FOR RED BUTTON
+        form = aiohttp.FormData()
+        form.add_field("chat_id", str(chat.id))
+        
+        # We must extract the raw bytes from the BytesIO object to send over HTTP
+        form.add_field("photo", card_io.getvalue(), filename="welcome.jpg", content_type="image/jpeg")
+        
+        # Placing your custom emoji silently in the caption (HTML parse mode)
+        form.add_field("caption", '<tg-emoji emoji-id="5235472087652510235">✨</tg-emoji>')
+        form.add_field("parse_mode", "HTML")
+        
+        # Building the Red Button ("style": "danger")
+        reply_markup = {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "➕ Add Me To Your Group 🚀🔥",
+                        "url": f"https://t.me/{bot_username}?startgroup=true",
+                        "style": "danger"
+                    }
+                ]
+            ]
+        }
+        form.add_field("reply_markup", json.dumps(reply_markup))
         
         try:
-            await client.send_photo(
-                chat_id=chat.id, 
-                photo=card_io, 
-                caption="", 
-                reply_markup=markup
-            )
+            url = f"https://api.telegram.org/bot{config.BOT_TOKEN}/sendPhoto"
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, data=form) as resp:
+                    if resp.status != 200:
+                        print(f"🔥 HTTP API BYPASS FAILED: {await resp.text()}")
+                    else:
+                        print("✅ WELCOME DEBUG: SUCCESS! Card sent with RED button.")
         except Exception as e:
-            print(f"❌ Send Error: {e}")
+            print(f"🔥 HTTP REQUEST CRASHED: {e}")
 
 @app.on_chat_member_updated(group=10)
 async def member_updated_welcome(client, update: ChatMemberUpdated):

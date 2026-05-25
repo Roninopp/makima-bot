@@ -81,7 +81,7 @@ async def process_welcome(client, chat, user):
         pfp = circle_crop(pfp)
         
         # Nudged the profile picture left and up to center it in the ring!
-        bg.paste(pfp, (795, 150), pfp)
+        bg.paste(pfp, (805, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
         text_color = "white"

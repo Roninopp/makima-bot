@@ -1,5 +1,6 @@
 import os
 import asyncio
+import requests
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
@@ -11,7 +12,11 @@ from AnonXMusic import app
 __MODULE__ = "Welcome"
 __HELP__ = "Automatically sends a clean, beautiful welcome card when a new user joins."
 
-print("✅ WELCOME.PY: Loaded successfully! Absolute Pathing Active.")
+print("✅ WELCOME.PY: Loaded successfully! URL Mode Active.")
+
+# 🚨 PASTE YOUR GITHUB RAW LINK HERE 🚨
+# 🚨 PASTE YOUR POSTIMAGES DIRECT LINK HERE 🚨
+BACKGROUND_URL = "https://i.postimg.cc/4Nk6RrMc/background.png""
 
 def circle_crop(image):
     mask = Image.new('L', image.size, 0)
@@ -40,23 +45,13 @@ async def process_welcome(client, chat, user):
         print(f"🚨 WELCOME DEBUG: Error downloading PFP: {e}")
 
     def generate_card():
-        # 🚨 THE FIX: Force Python to look exactly in the server's main root folder
-        root_dir = os.getcwd()
-        bg_path = os.path.join(root_dir, "background.jpg")
-        font_path = os.path.join(root_dir, "font.ttf")
-        
-        print(f"🚨 WELCOME DEBUG: Searching for background at -> {bg_path}")
-        
-        if not os.path.exists(bg_path):
-            print(f"❌ FATAL ERROR: Cannot find {bg_path}")
-            # This will print the files Heroku actually sees, exposing if it updated!
-            print(f"📁 Files Heroku actually sees here: {os.listdir(root_dir)[:15]}...") 
-            return None
-
         try:
-            bg = Image.open(bg_path).convert("RGBA")
+            print("🚨 WELCOME DEBUG: Fetching background straight from the internet...")
+            # We download the image into memory, completely bypassing Heroku folders!
+            response = requests.get(BACKGROUND_URL)
+            bg = Image.open(BytesIO(response.content)).convert("RGBA")
         except Exception as e:
-            print(f"❌ FATAL ERROR: Found the file, but Pillow couldn't open it! Error: {e}")
+            print(f"❌ FATAL ERROR: Could not fetch background from URL! Error: {e}")
             return None
 
         if pfp_path:
@@ -72,9 +67,12 @@ async def process_welcome(client, chat, user):
         bg.paste(pfp, (750, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
+        
+        # Try to load a font, otherwise fallback safely so the bot doesn't crash
         try:
-            font = ImageFont.truetype(font_path, 45)
+            font = ImageFont.truetype("font.ttf", 45)
         except IOError:
+            print("🚨 WELCOME DEBUG: font.ttf not found on Heroku, using default font.")
             font = ImageFont.load_default()
         
         text_color = "white"

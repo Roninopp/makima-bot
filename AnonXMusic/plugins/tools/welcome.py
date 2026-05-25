@@ -6,17 +6,14 @@ from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton
 
-# Hook into AnonXMusic's Core & Database
 from AnonXMusic import app 
 from AnonXMusic.core.mongo import mongodb
 
-# Create a database collection specifically for welcome settings
 welcome_db = mongodb.welcome_status
 
-print("✅ WELCOME.PY: Loaded successfully! Pro Mode Active.")
+print("✅ WELCOME.PY: Loaded successfully! UI Upgraded.")
 
 BACKGROUND_URL = "https://i.ibb.co/WvYsLxyg/background.png"
-# 🚨 Fetching a beautiful, bold font directly from Google to prevent microscopic text!
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
 
 __MODULE__ = "Welcome"
@@ -30,36 +27,29 @@ def circle_crop(image):
     result.paste(image, (0, 0), mask)
     return result
 
-# --- NEW FEATURE: The /welcome off Command ---
 @app.on_message(filters.command("welcome") & filters.group)
 async def welcome_toggle(client, message):
-    # 1. Security Check: Only admins can use this
     user_member = await client.get_chat_member(message.chat.id, message.from_user.id)
     if user_member.status not in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
         return await message.reply_text("❌ You need to be an admin to use this command.")
         
     if len(message.command) > 1 and message.command[1].lower() == "off":
-        # Save to MongoDB so it remembers even if the bot restarts!
         await welcome_db.update_one({"chat_id": message.chat.id}, {"$set": {"disabled": True}}, upsert=True)
         await message.reply_text("✅ Welcome card has been **disabled** for this group.")
     else:
         await message.reply_text("Use `/welcome off` to disable the welcome card.")
 
-# --- CORE WELCOME LOGIC ---
 async def process_welcome(client, chat, user):
     if user.is_self:
         return
         
-    # 2. Check Database: Skip if the group used /welcome off
     is_disabled = await welcome_db.find_one({"chat_id": chat.id})
     if is_disabled and is_disabled.get("disabled"):
         return
 
     user_id = user.id
-    name = (user.first_name or "Unknown")[:15]
     username = f"@{user.username}" if user.username else "No Username"
     
-    # 3. Download PFP directly into RAM (Bypassing Heroku folders entirely!)
     pfp_bytes = None
     try:
         if user.photo:
@@ -69,14 +59,14 @@ async def process_welcome(client, chat, user):
 
     def generate_card():
         try:
-            # Download Background and force it to a massive 1280x720 resolution
             bg_response = requests.get(BACKGROUND_URL)
             bg = Image.open(BytesIO(bg_response.content)).convert("RGBA")
             bg = bg.resize((1280, 720))
             
-            # Download Font and set size to 55px so it pops!
-            font_response = requests.get(FONT_URL)
-            font = ImageFont.truetype(BytesIO(font_response.content), 55)
+            # Fetch font once, load it in two different sizes
+            font_data = requests.get(FONT_URL).content
+            font_normal = ImageFont.truetype(BytesIO(font_data), 55)
+            font_huge = ImageFont.truetype(BytesIO(font_data), 100) # Huge font for WELCOME
         except Exception as e:
             print(f"❌ Asset Error: {e}")
             return None
@@ -90,16 +80,18 @@ async def process_welcome(client, chat, user):
         pfp = pfp.resize(pfp_size)
         pfp = circle_crop(pfp)
         
-        # Coordinates aligned specifically for your neon ring image!
-        bg.paste(pfp, (780, 175), pfp)
+        # Nudged the profile picture left and up to center it in the ring!
+        bg.paste(pfp, (730, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
         text_color = "white"
         
-        # Draw huge, clear text!
-        draw.text((80, 320), f"NAME : {name}", fill=text_color, font=font)
-        draw.text((80, 420), f"ID : {user_id}", fill=text_color, font=font)
-        draw.text((80, 520), f"USERNAME : {username}", fill=text_color, font=font)
+        # Draw the massive WELCOME text at the top
+        draw.text((80, 250), "WELCOME!", fill=text_color, font=font_huge)
+        
+        # Draw the ID and Username below it
+        draw.text((80, 420), f"ID : {user_id}", fill=text_color, font=font_normal)
+        draw.text((80, 520), f"USERNAME : {username}", fill=text_color, font=font_normal)
         
         output = BytesIO()
         bg.convert("RGB").save(output, format="JPEG", quality=95)
@@ -109,14 +101,12 @@ async def process_welcome(client, chat, user):
     card_io = await asyncio.to_thread(generate_card)
     
     if card_io:
-        # 4. Generate the "Add Me" Button using your bot's actual username
         bot_username = client.me.username if client.me else "BeatNovaBot"
         markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("➕ Add Me To Your Group", url=f"https://t.me/{bot_username}?startgroup=true")]
         ])
         
         try:
-            # Send the image with NO caption, just the button!
             await client.send_photo(
                 chat_id=chat.id, 
                 photo=card_io, 

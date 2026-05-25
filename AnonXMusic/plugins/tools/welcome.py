@@ -16,7 +16,7 @@ welcome_db = mongodb.welcome_status
 
 print("✅ WELCOME.PY: Loaded successfully! Native Animated Emoji Active.")
 
-BACKGROUND_URL = "https://i.ibb.co/WvYsLxyg/background.png"
+BACKGROUND_URL = "https://i.ibb.co/gZ6c84TL/Gemini-Generated-Image-8y28q28y28q28y28.png"
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
 
 __MODULE__ = "Welcome"

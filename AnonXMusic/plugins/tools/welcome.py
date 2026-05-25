@@ -82,7 +82,7 @@ async def process_welcome(client, chat, user):
         pfp = pfp.resize(pfp_size)
         pfp = circle_crop(pfp)
         
-        bg.paste(pfp, (765, 150), pfp)
+        bg.paste(pfp, (750, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
         text_color = "white"

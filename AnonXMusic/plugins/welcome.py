@@ -1,19 +1,17 @@
 import os
 import asyncio
-import logging
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
-from pyrogram import Client, filters
-from pyrogram.enums import ChatMemberStatus
+from pyrogram import Client
+from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import ChatMemberUpdated
-
-# Setup basic logging to see if it triggers
-logger = logging.getLogger(__name__)
 
 __MODULE__ = "Welcome"
 __HELP__ = "Automatically sends a clean, beautiful welcome card when a new user joins."
 
-# --- Helper: Crops the profile picture into a perfect circle ---
+# This prints instantly when the bot starts, proving the file is read.
+print("✅ WELCOME.PY: Module successfully loaded into memory!")
+
 def circle_crop(image):
     mask = Image.new('L', image.size, 0)
     draw = ImageDraw.Draw(mask)
@@ -22,17 +20,21 @@ def circle_crop(image):
     result.paste(image, (0, 0), mask)
     return result
 
-# --- Main Event Listener ---
-# group=10 ensures this runs smoothly even if other bots are active
-@Client.on_chat_member_updated(filters.group, group=10)
+# Removed filters.group from here to guarantee we catch the event
+@Client.on_chat_member_updated(group=10)
 async def simple_welcome_card(client: Client, update: ChatMemberUpdated):
     
-    # 1. Verify this is actually a NEW user joining
+    # 1. Manually enforce the group filter here
+    if update.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
+        return
+
+    print(f"🚨 WELCOME DEBUG: chat_member_updated fired in {update.chat.title}!")
+
     if not update.new_chat_member:
+        print("🚨 WELCOME DEBUG: No new_chat_member found in update. Ignoring.")
         return
         
     is_new_join = False
-    # If they had no previous status, or went from 'left' to 'member'
     if update.old_chat_member is None:
         is_new_join = True
     elif update.old_chat_member.status in [ChatMemberStatus.BANNED, ChatMemberStatus.LEFT]:
@@ -40,88 +42,82 @@ async def simple_welcome_card(client: Client, update: ChatMemberUpdated):
             is_new_join = True
             
     if not is_new_join:
+        print("🚨 WELCOME DEBUG: Event is just a status update, not a new join.")
         return
 
-    # Extract user data
     user = update.new_chat_member.user
     
-    # 2. Ignore if the bot itself joined the group
     if user.is_self:
+        print("🚨 WELCOME DEBUG: Bot itself was added. Ignoring.")
         return
 
-    logger.info(f"🚨 NEW JOIN TRIGGERED: {user.first_name} joined {update.chat.title}")
+    print(f"🚨 WELCOME DEBUG: Valid join detected for {user.first_name}! Starting image generation...")
 
-    # 3. Get User Info
     user_id = user.id
-    name = (user.first_name or "Unknown")[:15] # Limit length to fit the card
+    name = (user.first_name or "Unknown")[:15]
     username = f"@{user.username}" if user.username else "No Username"
     
-    # 4. Safely Download Profile Picture
     pfp_path = None
     try:
         if user.photo:
+            print("🚨 WELCOME DEBUG: Downloading profile picture...")
             pfp_path = await client.download_media(user.photo.big_file_id)
     except Exception as e:
-        logger.warning(f"Could not download PFP: {e}")
+        print(f"🚨 WELCOME DEBUG: Error downloading PFP: {e}")
 
-    # 5. Image Generation Function (Runs in background so it doesn't freeze the bot)
     def generate_card():
         try:
-            # Looks for background.jpg in your main server folder
+            print("🚨 WELCOME DEBUG: Opening background.jpg...")
             bg = Image.open("background.jpg").convert("RGBA")
         except FileNotFoundError:
-            logger.error("❌ ERROR: background.jpg not found in the root folder!")
+            print("❌ FATAL ERROR: background.jpg is missing from the root folder!")
             return None
 
-        # Load profile picture or default gray circle
         if pfp_path:
             pfp = Image.open(pfp_path).convert("RGBA")
         else:
             pfp = Image.new("RGBA", (400, 400), color=(150, 150, 150, 255))
         
-        # Resize and crop PFP
         pfp_size = (350, 350)
         pfp = pfp.resize(pfp_size)
         pfp = circle_crop(pfp)
         
-        # Paste PFP onto background (Adjust the 750, 150 coordinates to fit your specific template!)
+        # Coordinates for PFP
         bg.paste(pfp, (750, 150), pfp)
         
-        # Setup Text
         draw = ImageDraw.Draw(bg)
         try:
-            # Looks for font.ttf in your main server folder
             font = ImageFont.truetype("font.ttf", 45)
         except IOError:
+            print("🚨 WELCOME DEBUG: font.ttf missing, using default font.")
             font = ImageFont.load_default()
         
-        # Draw the text on the image (Adjust X, Y coordinates here too!)
         text_color = "white"
+        # Coordinates for Text
         draw.text((100, 350), f"NAME : {name}", fill=text_color, font=font)
         draw.text((100, 450), f"ID : {user_id}", fill=text_color, font=font)
         draw.text((100, 550), f"USERNAME : {username}", fill=text_color, font=font)
         
-        # Save to memory and return
+        print("🚨 WELCOME DEBUG: Image compiled successfully. Saving to memory...")
         output = BytesIO()
         bg.convert("RGB").save(output, format="JPEG", quality=95)
         output.name = "welcome.jpg"
         return output
 
-    # 6. Generate and Send
     card_io = await asyncio.to_thread(generate_card)
     
     if card_io:
         caption = f"Hey {user.mention}, welcome to **{update.chat.title}**!\nEnjoy the music 🎵"
         try:
+            print("🚨 WELCOME DEBUG: Attempting to send photo to Telegram...")
             await client.send_photo(
                 chat_id=update.chat.id,
                 photo=card_io,
                 caption=caption
             )
-            logger.info("✅ Welcome card sent successfully!")
+            print("✅ WELCOME DEBUG: SUCCESS! Card sent.")
         except Exception as e:
-            logger.error(f"❌ Failed to send photo: {e}")
+            print(f"❌ WELCOME DEBUG: Telegram refused the message. Error: {e}")
         
-    # 7. Cleanup downloaded PFP to save server space
     if pfp_path and os.path.exists(pfp_path):
         os.remove(pfp_path)

@@ -16,7 +16,7 @@ print("✅ WELCOME.PY: Loaded successfully! URL Mode Active.")
 
 # 🚨 PASTE YOUR GITHUB RAW LINK HERE 🚨
 # 🚨 PASTE YOUR POSTIMAGES DIRECT LINK HERE 🚨
-BACKGROUND_URL = "https://ibb.co/Sw9JzsnR"
+BACKGROUND_URL = "https://i.ibb.co/WvYsLxyg/background.png"
 
 def circle_crop(image):
     mask = Image.new('L', image.size, 0)

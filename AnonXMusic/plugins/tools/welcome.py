@@ -4,15 +4,14 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType
-from pyrogram.types import ChatMemberUpdated, Message
+from pyrogram.types import ChatMemberUpdated
 
-# 🚨 THE CRITICAL FIX: Importing the active app instance directly from AnonXMusic
 from AnonXMusic import app 
 
 __MODULE__ = "Welcome"
 __HELP__ = "Automatically sends a clean, beautiful welcome card when a new user joins."
 
-print("✅ WELCOME.PY: Loaded successfully! The Double-Trap is active.")
+print("✅ WELCOME.PY: Loaded successfully! Absolute Pathing Active.")
 
 def circle_crop(image):
     mask = Image.new('L', image.size, 0)
@@ -22,7 +21,6 @@ def circle_crop(image):
     result.paste(image, (0, 0), mask)
     return result
 
-# --- CORE IMAGE GENERATION LOGIC ---
 async def process_welcome(client, chat, user):
     if user.is_self:
         return
@@ -42,10 +40,23 @@ async def process_welcome(client, chat, user):
         print(f"🚨 WELCOME DEBUG: Error downloading PFP: {e}")
 
     def generate_card():
+        # 🚨 THE FIX: Force Python to look exactly in the server's main root folder
+        root_dir = os.getcwd()
+        bg_path = os.path.join(root_dir, "background.jpg")
+        font_path = os.path.join(root_dir, "font.ttf")
+        
+        print(f"🚨 WELCOME DEBUG: Searching for background at -> {bg_path}")
+        
+        if not os.path.exists(bg_path):
+            print(f"❌ FATAL ERROR: Cannot find {bg_path}")
+            # This will print the files Heroku actually sees, exposing if it updated!
+            print(f"📁 Files Heroku actually sees here: {os.listdir(root_dir)[:15]}...") 
+            return None
+
         try:
-            bg = Image.open("background.jpg").convert("RGBA")
-        except FileNotFoundError:
-            print("❌ FATAL ERROR: background.jpg is missing from the root folder!")
+            bg = Image.open(bg_path).convert("RGBA")
+        except Exception as e:
+            print(f"❌ FATAL ERROR: Found the file, but Pillow couldn't open it! Error: {e}")
             return None
 
         if pfp_path:
@@ -62,7 +73,7 @@ async def process_welcome(client, chat, user):
         
         draw = ImageDraw.Draw(bg)
         try:
-            font = ImageFont.truetype("font.ttf", 45)
+            font = ImageFont.truetype(font_path, 45)
         except IOError:
             font = ImageFont.load_default()
         
@@ -91,8 +102,6 @@ async def process_welcome(client, chat, user):
     if pfp_path and os.path.exists(pfp_path):
         os.remove(pfp_path)
 
-
-# --- TRAP 1: The Background Update Listener ---
 @app.on_chat_member_updated(group=10)
 async def member_updated_welcome(client, update: ChatMemberUpdated):
     if update.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
@@ -111,11 +120,3 @@ async def member_updated_welcome(client, update: ChatMemberUpdated):
     if is_new_join:
         print("🚨 TRAP 1 TRIGGERED (Background Update)")
         await process_welcome(client, update.chat, update.new_chat_member.user)
-
-
-# --- TRAP 2: The Service Message Listener ---
-@app.on_message(filters.new_chat_members & filters.group, group=11)
-async def message_welcome(client, message: Message):
-    print("🚨 TRAP 2 TRIGGERED (Service Message)")
-    for user in message.new_chat_members:
-        await process_welcome(client, message.chat, user)

@@ -10,11 +10,11 @@ from pyrogram.types import ChatMemberUpdated
 
 from AnonXMusic import app 
 from AnonXMusic.core.mongo import mongodb
-import config # Imported to grab your BOT_TOKEN for the bypass
+import config 
 
 welcome_db = mongodb.welcome_status
 
-print("✅ WELCOME.PY: Loaded successfully! HTTP Bypass & Red Button Active.")
+print("✅ WELCOME.PY: Loaded successfully! Native Animated Emoji Active.")
 
 BACKGROUND_URL = "https://i.ibb.co/WvYsLxyg/background.png"
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
@@ -82,8 +82,7 @@ async def process_welcome(client, chat, user):
         pfp = pfp.resize(pfp_size)
         pfp = circle_crop(pfp)
         
-        # Using your exact 805 coordinate to center it perfectly!
-        bg.paste(pfp, (810, 150), pfp)
+        bg.paste(pfp, (815, 150), pfp)
         
         draw = ImageDraw.Draw(bg)
         text_color = "white"
@@ -102,25 +101,22 @@ async def process_welcome(client, chat, user):
     if card_io:
         bot_username = client.me.username if client.me else "BeatNovaBot"
         
-        # 🚀 HTTP API BYPASS INJECTION FOR RED BUTTON
         form = aiohttp.FormData()
         form.add_field("chat_id", str(chat.id))
-        
-        # We must extract the raw bytes from the BytesIO object to send over HTTP
         form.add_field("photo", card_io.getvalue(), filename="welcome.jpg", content_type="image/jpeg")
         
-        # Placing your custom emoji silently in the caption (HTML parse mode)
-        form.add_field("caption", '<tg-emoji emoji-id="5235472087652510235">✨</tg-emoji>')
-        form.add_field("parse_mode", "HTML")
+        # Blank caption so nothing shows above the button
+        form.add_field("caption", "")
         
-        # Building the Red Button ("style": "danger")
+        # 🚀 HTTP API BYPASS INJECTION FOR RED BUTTON & NATIVE CUSTOM EMOJI
         reply_markup = {
             "inline_keyboard": [
                 [
                     {
-                        "text": "➕ Add Me To Your Group 🚀🔥",
+                        "text": "Add Me To Your Group",
                         "url": f"https://t.me/{bot_username}?startgroup=true",
-                        "style": "danger"
+                        "style": "danger",
+                        "icon_custom_emoji_id": "5235472087652510235"
                     }
                 ]
             ]
@@ -134,7 +130,7 @@ async def process_welcome(client, chat, user):
                     if resp.status != 200:
                         print(f"🔥 HTTP API BYPASS FAILED: {await resp.text()}")
                     else:
-                        print("✅ WELCOME DEBUG: SUCCESS! Card sent with RED button.")
+                        print("✅ WELCOME DEBUG: SUCCESS! Card sent with native custom emoji.")
         except Exception as e:
             print(f"🔥 HTTP REQUEST CRASHED: {e}")
 

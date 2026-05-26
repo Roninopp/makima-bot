@@ -3,7 +3,7 @@ import random
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
-from pyrogram.enums import ChatMemberStatus, ChatMembersFilter, ParseMode # Added ParseMode here!
+from pyrogram.enums import ChatMemberStatus, ChatMembersFilter, ParseMode
 
 # Hooking directly into your AnonXMusic core!
 from AnonXMusic import app
@@ -63,10 +63,11 @@ async def is_admin(client: Client, chat_id: int, user_id: int) -> bool:
     except:
         return False
 
-async def get_members(client: Client, chat_id: int, limit: int = 200):
+async def get_members(client: Client, chat_id: int):
     members = []
     try:
-        async for member in client.get_chat_members(chat_id, limit=limit):
+        # NO LIMIT: Will fetch all users in the group up to API limits
+        async for member in client.get_chat_members(chat_id):
             if not member.user.is_bot and not member.user.is_deleted:
                 members.append(member.user)
     except Exception as e:
@@ -85,7 +86,7 @@ async def mention_users(client: Client, message: Message, members: list, text: s
         mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={user.id})" for user in batch])
         try:
             msg_text = f"{text}\n\n{mentions}" if text else mentions
-            # 🚨 FIX: Force ParseMode.MARKDOWN so the emoji brackets become clickable links!
+            # Forced Markdown so tags hide cleanly behind emojis
             await client.send_message(chat_id, msg_text, parse_mode=ParseMode.MARKDOWN)
             mentioned_count += len(batch)
             await asyncio.sleep(1.5 if mode == "normal" else 0.8 if mode == "fast" else 2)
@@ -195,7 +196,6 @@ async def admintag(client: Client, message: Message):
         return
     mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={admin.id})" for admin in admins])
     msg_text = f"{text}\n\n{mentions}"
-    # 🚨 FIX: Markdown here too!
     await message.reply_text(msg_text, parse_mode=ParseMode.MARKDOWN)
     await status_msg.delete()
 
@@ -219,7 +219,6 @@ async def botstag(client: Client, message: Message):
         return
     mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={bot.id})" for bot in bots])
     msg_text = f"{text}\n\n{mentions}"
-    # 🚨 FIX: Markdown here too!
     await message.reply_text(msg_text, parse_mode=ParseMode.MARKDOWN)
     await status_msg.delete()
 

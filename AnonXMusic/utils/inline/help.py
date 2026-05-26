@@ -1,187 +1,63 @@
-"""
-Plugin for creating quote stickers from messages using the external API.
-Adapted natively for Nova Beats (AnonXMusic structure).
-"""
-import logging
-import aiohttp
-from io import BytesIO
-from pyrogram import Client, filters
-from pyrogram.types import Message
-
-import config
+from typing import Union
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from AnonXMusic import app
-from AnonXMusic.misc import SUDOERS # Standard AnonXMusic sudo check, or use your BANNED_USERS
 
-logger = logging.getLogger(__name__)
-
-# --- API Client Setup ---
-API_HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-}
-
-class QuotlyException(Exception):
-    pass
-
-# --- Helper Functions ---
-async def get_message_sender_id(ctx: Message):
-    if ctx.forward_date:
-        if ctx.forward_sender_name: return 1
-        elif ctx.forward_from: return ctx.forward_from.id
-        elif ctx.forward_from_chat: return ctx.forward_from_chat.id
-        else: return 1
-    elif ctx.from_user: return ctx.from_user.id
-    elif ctx.sender_chat: return ctx.sender_chat.id
-    else: return 1
-
-async def get_message_sender_name(ctx: Message):
-    if ctx.forward_date:
-        if ctx.forward_sender_name: return ctx.forward_sender_name
-        elif ctx.forward_from:
-            return f"{ctx.forward_from.first_name} {ctx.forward_from.last_name}" if ctx.forward_from.last_name else ctx.forward_from.first_name
-        elif ctx.forward_from_chat: return ctx.forward_from_chat.title
-        else: return "Anonymous"
-    elif ctx.from_user:
-        return f"{ctx.from_user.first_name} {ctx.from_user.last_name}" if ctx.from_user.last_name else ctx.from_user.first_name
-    elif ctx.sender_chat: return ctx.sender_chat.title
-    else: return "Anonymous"
-
-async def get_message_sender_username(ctx: Message):
-    if ctx.forward_date:
-        if not ctx.forward_sender_name and not ctx.forward_from and ctx.forward_from_chat and ctx.forward_from_chat.username:
-            return ctx.forward_from_chat.username
-        elif not ctx.forward_sender_name and not ctx.forward_from and ctx.forward_from_chat or ctx.forward_sender_name or not ctx.forward_from:
-            return ""
-        else: return ctx.forward_from.username or ""
-    elif ctx.from_user and ctx.from_user.username: return ctx.from_user.username
-    elif ctx.from_user or ctx.sender_chat and not ctx.sender_chat.username or not ctx.sender_chat: return ""
-    else: return ctx.sender_chat.username
-
-async def get_message_sender_photo(ctx: Message):
-    if ctx.forward_date:
-        if not ctx.forward_sender_name and not ctx.forward_from and ctx.forward_from_chat and ctx.forward_from_chat.photo:
-            return { "big_file_id": ctx.forward_from_chat.photo.big_file_id }
-        elif not ctx.forward_sender_name and not ctx.forward_from and ctx.forward_from_chat or ctx.forward_sender_name or not ctx.forward_from:
-            return None
-        else: return { "big_file_id": ctx.forward_from.photo.big_file_id } if ctx.forward_from.photo else None
-    elif ctx.from_user and ctx.from_user.photo: return { "big_file_id": ctx.from_user.photo.big_file_id }
-    elif ctx.from_user or ctx.sender_chat and not ctx.sender_chat.photo or not ctx.sender_chat: return None
-    else: return { "big_file_id": ctx.sender_chat.photo.big_file_id }
-
-async def get_text_or_caption(ctx: Message):
-    if ctx.text: return ctx.text
-    elif ctx.caption: return ctx.caption
-    else: return ""
-
-# --- API Payload Builder ---
-async def pyrogram_to_quotly(message: Message, is_reply: bool, custom_text: str = None):
-    payload = {"type": "quote", "format": "webp", "backgroundColor": "#1b1429", "messages": []}
-    display_text = custom_text if custom_text is not None else await get_text_or_caption(message)
-
-    message_payload = {"entities": [], "avatar": True, "from": {}, "text": display_text, "replyMessage": {}}
+def help_pannel(_, is_sudo, START: Union[bool, int] = None):
+    first = [InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data=f"close")]
+    second = [
+        InlineKeyboardButton(
+            text=_["BACK_BUTTON"],
+            callback_data=f"settings_back_helper",
+        ),
+    ]
+    mark = second if START else first
+    upl = [
+            [
+                InlineKeyboardButton(text=_["H_B_1"], callback_data="help_callback hb1"),
+                InlineKeyboardButton(text=_["H_B_2"], callback_data="help_callback hb2"),
+                InlineKeyboardButton(text=_["H_B_3"], callback_data="help_callback hb3"),
+            ],
+            [
+                InlineKeyboardButton(text=_["H_B_4"], callback_data="help_callback hb4"),
+                InlineKeyboardButton(text=_["H_B_5"], callback_data="help_callback hb5"),
+                InlineKeyboardButton(text=_["H_B_6"], callback_data="help_callback hb6"),
+            ],
+            [
+                InlineKeyboardButton(text=_["H_B_7"], callback_data="help_callback hb7"),
+                InlineKeyboardButton(text=_["H_B_8"], callback_data="help_callback hb8"),
+                InlineKeyboardButton(text=_["H_B_9"], callback_data="help_callback hb9"),
+            ],
+            [
+                InlineKeyboardButton(text=_["H_B_10"], callback_data="help_callback hb10"),
+                InlineKeyboardButton(text=_["H_B_11"], callback_data="help_callback hb11"),
+                InlineKeyboardButton(text=_["H_B_12"], callback_data="help_callback hb12"),
+            ],
+            [
+                InlineKeyboardButton(text=_["H_B_13"], callback_data="help_callback hb13"),
+                InlineKeyboardButton(text=_["H_B_14"], callback_data="help_callback hb14"),
+                InlineKeyboardButton(text=_["H_B_15"], callback_data="help_callback hb15"),
+            ],
+            # 🚀 OUR CUSTOM PREMIUM MODULES ROW 1
+            [
+                InlineKeyboardButton(text="Whisper", callback_data="help_callback Whisper"),
+                InlineKeyboardButton(text="TagAll", callback_data="help_callback TagAll"),
+                InlineKeyboardButton(text="Welcome", callback_data="help_callback Welcome"),
+            ],
+            # 🚀 OUR CUSTOM PREMIUM MODULES ROW 2
+            [
+                InlineKeyboardButton(text="Quote Sticker", callback_data="help_callback Quote"),
+                InlineKeyboardButton(text="Quality", callback_data="help_callback Quality"),
+            ]
+        ]
     
-    if custom_text is None:
-        entities = message.entities or message.caption_entities
-        if entities:
-            for entity in entities:
-                message_payload["entities"].append({"type": entity.type.name.lower(), "offset": entity.offset, "length": entity.length})
+    if is_sudo:
+        upl.append([InlineKeyboardButton(text="Ai/TTS/IMAGE Settings", callback_data="help_callback hb16")])
     
-    sender = message.from_user or message.sender_chat
-    emoji_status_document_id = sender.emoji_status.custom_emoji_id if sender and sender.emoji_status else None
-        
-    message_payload["from"] = {
-        "id": await get_message_sender_id(message),
-        "name": await get_message_sender_name(message),
-        "username": await get_message_sender_username(message),
-        "type": message.chat.type.name.lower(),
-        "photo": await get_message_sender_photo(message),
-        "emojiStatus": { "document_id": emoji_status_document_id } if emoji_status_document_id else None
-    }
-    
-    if message.reply_to_message and is_reply:
-        reply_sender = message.reply_to_message.from_user or message.reply_to_message.sender_chat
-        reply_emoji_id = reply_sender.emoji_status.custom_emoji_id if reply_sender and reply_sender.emoji_status else None
-            
-        message_payload["replyMessage"] = {
-            "name": await get_message_sender_name(message.reply_to_message),
-            "text": await get_text_or_caption(message.reply_to_message),
-            "chatId": await get_message_sender_id(message.reply_to_message),
-            "emojiStatus": { "document_id": reply_emoji_id } if reply_emoji_id else None
-        }
-    
-    payload["messages"].append(message_payload)
-    
-    async with aiohttp.ClientSession(headers=API_HEADERS) as session:
-        async with session.post("https://bot.lyo.su/quote/generate.webp", json=payload, timeout=20) as r:
-            if r.status == 200:
-                return await r.read()
-            else:
-                error_text = await r.text()
-                raise QuotlyException(error_text)
+    upl.append(mark)
+    return InlineKeyboardMarkup(upl)
 
-# --- Command Handlers ---
-@app.on_message(filters.command(["q"]))
-async def msg_quotly_cmd(client: Client, message: Message):
-    ww = await message.reply_text("💬 **Creating quote sticker...**")
-    if not message.reply_to_message:
-        return await ww.edit("❌ **Please reply to a message to quote it!**")
+def help_back_markup(_):
+    return InlineKeyboardMarkup([[InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data=f"settings_back_helper")]])
 
-    is_reply_mode = len(message.command) > 1 and message.command[1].lower() == 'r'
-
-    try:
-        sticker_bytes = await pyrogram_to_quotly(message.reply_to_message, is_reply=is_reply_mode)
-        bio = BytesIO(sticker_bytes)
-        bio.name = "sticker.webp"
-        
-        await client.send_sticker(chat_id=message.chat.id, sticker=bio, reply_to_message_id=message.reply_to_message.id)
-        await ww.delete()
-    except Exception as e:
-        await ww.edit(f"❌ **Error:** `{e}`")
-
-@app.on_message(filters.command(["qt"]))
-async def custom_quote_cmd(client: Client, message: Message):
-    ww = await message.reply_text("💬 **Creating custom quote...**")
-    if not message.reply_to_message:
-        return await ww.edit("❌ **Please reply to a message to add custom text!**")
-    
-    if len(message.command) < 2:
-        return await ww.edit("❌ **Please provide the text you want to quote!**\n\n**Example:** `/qt Hello there!`")
-
-    full_text_input = message.text.split(None, 1)[1]
-    is_reply_mode = full_text_input.lower().strip().startswith("-r")
-    
-    if is_reply_mode:
-        parts = full_text_input.split(None, 1)
-        if len(parts) > 1: custom_text = parts[1]
-        else: return await ww.edit("❌ **Please provide text *after* the `-r` flag!**")
-    else:
-        custom_text = full_text_input
-
-    try:
-        sticker_bytes = await pyrogram_to_quotly(message.reply_to_message, is_reply=is_reply_mode, custom_text=custom_text)
-        bio = BytesIO(sticker_bytes)
-        bio.name = "sticker.webp"
-        
-        await client.send_sticker(chat_id=message.chat.id, sticker=bio, reply_to_message_id=message.reply_to_message.id)
-        await ww.delete()
-    except Exception as e:
-        await ww.edit(f"❌ **Error:** `{e}`")
-
-# --- Dynamic Help Menu ---
-__MODULE__ = "Quote"
-__HELP__ = """
-**💬 Quote Sticker Module:**
-
-Convert any message into a beautiful, shareable sticker instantly!
-
-**Commands:**
-• `/q` - Reply to a message to turn it into a sticker.
-• `/q r` - Turn a message into a sticker showing the reply context.
-• `/qt [text]` - Reply to a message but replace the text with your own!
-• `/qt -r [text]` - Custom text quote with reply context.
-
-**Features:**
-• 🎨 Custom background parsing.
-• 👤 Auto-fetches the sender's profile picture and name.
-• ⚡ Premium API for high-quality webp sticker generation.
-"""
+def private_help_panel(_):
+    return [[InlineKeyboardButton(text=_["S_B_4"], url=f"https://t.me/{app.username}?start=help")]]

@@ -9,9 +9,10 @@ from pyrogram.enums import ParseMode
 
 from AnonXMusic import app
 from AnonXMusic.misc import SUDOERS
+from AnonXMusic.utils import help_pannel
 from AnonXMusic.utils.database import get_lang, get_model_settings, update_model_settings
 from AnonXMusic.utils.decorators.language import LanguageStart, languageCB
-from AnonXMusic.utils.inline.help import help_pannel, help_back_markup, private_help_panel
+from AnonXMusic.utils.inline.help import help_back_markup, private_help_panel
 from config import BANNED_USERS, START_IMG_URL, SUPPORT_CHAT, YTPROXY_URL
 import config
 from strings import get_string, helpers

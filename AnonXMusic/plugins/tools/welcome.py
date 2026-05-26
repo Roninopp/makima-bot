@@ -14,7 +14,7 @@ import config
 
 welcome_db = mongodb.welcome_status
 
-print("✅ WELCOME.PY: Loaded successfully! Auto-Delete & Native Emoji Active.")
+print("✅ WELCOME.PY: Loaded successfully! 10-Min Auto-Delete & Heavy Debugger Active.")
 
 BACKGROUND_URL = "https://i.ibb.co/gZ6c84TL/Gemini-Generated-Image-8y28q28y28q28y28.png"
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
@@ -30,15 +30,19 @@ def circle_crop(image):
     result.paste(image, (0, 0), mask)
     return result
 
-# 🚀 BACKGROUND TASK: Silently waits 15 minutes, then deletes the specific welcome message
+# 🚀 BACKGROUND TASK: 10 Minute Timer with Debug Fallbacks
 async def auto_delete_welcome(client, chat_id, message_id):
-    # 900 seconds = 15 minutes. (Change this to 720 if you prefer 12 minutes!)
-    await asyncio.sleep(900)
+    print(f"⏱️ WELCOME DEBUG: Countdown started! Will delete message {message_id} in 10 minutes.")
+    
+    # 600 seconds = 10 minutes
+    await asyncio.sleep(600)
+    
+    print(f"🗑️ WELCOME DEBUG: 10 minutes passed! Attempting to delete message {message_id} in chat {chat_id}...")
     try:
         await client.delete_messages(chat_id=chat_id, message_ids=message_id)
-        print(f"🗑️ WELCOME DEBUG: Auto-deleted message {message_id} in {chat_id}")
+        print(f"✅ WELCOME DEBUG: SUCCESS! Welcome card auto-deleted flawlessly.")
     except Exception as e:
-        print(f"⚠️ WELCOME DEBUG: Could not auto-delete message: {e}")
+        print(f"❌ WELCOME FATAL ERROR: Failed to auto-delete message! Reason: {e}")
 
 @app.on_message(filters.command("welcome") & filters.group)
 async def welcome_toggle(client, message):
@@ -68,7 +72,7 @@ async def process_welcome(client, chat, user):
         if user.photo:
             pfp_bytes = await client.download_media(user.photo.big_file_id, in_memory=True)
     except Exception as e:
-        print(f"🚨 PFP Error: {e}")
+        pass
 
     def generate_card():
         try:
@@ -80,7 +84,6 @@ async def process_welcome(client, chat, user):
             font_normal = ImageFont.truetype(BytesIO(font_data), 55)
             font_huge = ImageFont.truetype(BytesIO(font_data), 100) 
         except Exception as e:
-            print(f"❌ Asset Error: {e}")
             return None
 
         if pfp_bytes:
@@ -114,11 +117,8 @@ async def process_welcome(client, chat, user):
         form = aiohttp.FormData()
         form.add_field("chat_id", str(chat.id))
         form.add_field("photo", card_io.getvalue(), filename="welcome.jpg", content_type="image/jpeg")
-        
-        # Blank caption so nothing shows above the button
         form.add_field("caption", "")
         
-        # 🚀 HTTP API BYPASS INJECTION FOR RED BUTTON & NATIVE CUSTOM EMOJI
         reply_markup = {
             "inline_keyboard": [
                 [
@@ -140,17 +140,19 @@ async def process_welcome(client, chat, user):
                     if resp.status != 200:
                         print(f"🔥 HTTP API BYPASS FAILED: {await resp.text()}")
                     else:
-                        print("✅ WELCOME DEBUG: SUCCESS! Card sent with native custom emoji.")
+                        print("✅ WELCOME DEBUG: Card successfully sent!")
                         
-                        # 🚀 GRAB THE MESSAGE ID & START THE AUTO-DELETE TIMER!
+                        # 🚀 DEBUGGING THE JSON RESPONSE TO ENSURE WE GET THE MESSAGE ID
                         try:
                             response_data = await resp.json()
                             if response_data.get("ok"):
                                 message_id = response_data["result"]["message_id"]
-                                # Send to the background task to wait 15 minutes and delete it
+                                print(f"✅ WELCOME DEBUG: Grabbed Message ID [{message_id}]. Sending to auto-deleter...")
                                 asyncio.create_task(auto_delete_welcome(client, chat.id, message_id))
+                            else:
+                                print(f"⚠️ WELCOME DEBUG: Telegram blocked the message ID retrieval. Data: {response_data}")
                         except Exception as parse_err:
-                            print(f"⚠️ Could not parse response for auto-delete: {parse_err}")
+                            print(f"⚠️ WELCOME DEBUG: Could not parse JSON for auto-delete: {parse_err}")
                             
         except Exception as e:
             print(f"🔥 HTTP REQUEST CRASHED: {e}")

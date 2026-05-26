@@ -12,7 +12,7 @@ numpy==2.4.4
 opencv-python==4.13.0.92
 pillow==12.1.1
 psutil>=5.9.0
-py-tgcalls==2.2.11
+py-tgcalls==2.2.12
 pymongo==4.16.0
 pyrofork @ git+https://github.com/Mayuri-Chan/pyrofork.git
 python-dotenv>=1.0.0

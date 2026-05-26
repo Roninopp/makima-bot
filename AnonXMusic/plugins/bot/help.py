@@ -106,6 +106,7 @@ async def helper_cb(client, CallbackQuery:CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
     cb = callback_data.split(None, 1)[1]
     keyboard = help_back_markup(_)
+    
     if cb == "hb1":
         await CallbackQuery.edit_message_text(helpers.HELP_1, reply_markup=keyboard)
     elif cb == "hb2":
@@ -136,6 +137,25 @@ async def helper_cb(client, CallbackQuery:CallbackQuery, _):
         await CallbackQuery.edit_message_text(helpers.HELP_14, reply_markup=keyboard)
     elif cb == "hb15":
         await CallbackQuery.edit_message_text(helpers.HELP_15, reply_markup=keyboard)
+        
+    # 🚀 OUR CUSTOM PREMIUM MODULES BRAIN WIRING
+    elif cb == "Whisper":
+        whisper_help = "**🤫 Secure Whisper Module:**\n\nSend private messages right inside a public group! Only the person you tag can open and read it.\n\n**Commands:**\n• `@BeatNovaBot [username] [message]` - Type this in the chat box to send an inline whisper.\n• `/whisper [username] [message]` - Send a whisper via standard command."
+        await CallbackQuery.edit_message_text(whisper_help, reply_markup=keyboard)
+    elif cb == "TagAll":
+        tagall_help = "**🏷️ TagAll Module:**\n\nMention all members in the group to get their attention.\n\n**Commands:**\n• `/tagall [message]` or `@all [message]` - Tag everyone in the group.\n• `/cancel` - Stop an ongoing tagging process."
+        await CallbackQuery.edit_message_text(tagall_help, reply_markup=keyboard)
+    elif cb == "Welcome":
+        welcome_help = "**🪪 Premium Welcome Module:**\n\nAutomatically sends a beautiful, customized welcome image card when new users join. The card auto-deletes after 10 minutes to prevent spam!\n\n**Commands:**\n• `/welcome off` - Disables the welcome card for your group (Admin only)."
+        await CallbackQuery.edit_message_text(welcome_help, reply_markup=keyboard)
+    elif cb == "Quote":
+        quote_help = "**💬 Quote Sticker Module:**\n\nConvert any text message into a beautiful, shareable Telegram sticker instantly!\n\n**Commands:**\n• `/q` - Reply to a message to turn it into a sticker.\n• `/q r` - Turn a message into a sticker showing the reply context.\n• `/qt [text]` - Reply to a message but replace the text with your own!\n• `/qt -r [text]` - Custom text quote with reply context."
+        await CallbackQuery.edit_message_text(quote_help, reply_markup=keyboard)
+    elif cb == "Quality":
+        quality_help = "**🎧 Audio/Video Quality Module:**\n\nAdjust the streaming quality of your voice chat to match your network speed.\n\n**Commands:**\n• `/vquality` - Select Video Playback Quality (Low, Medium, High).\n• `/aquality` - Select Audio Playback Quality (Low, Medium, High)."
+        await CallbackQuery.edit_message_text(quality_help, reply_markup=keyboard)
+        
+    # BACK TO DEFAULT ANONX SETTINGS
     elif cb == "hb16":
         btn = [
             [

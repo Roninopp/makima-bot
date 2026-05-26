@@ -35,7 +35,7 @@ async def auto_delete_welcome(client, chat_id, message_id):
     print(f"⏱️ WELCOME DEBUG: Countdown started! Will delete message {message_id} in 10 minutes.")
     
     # 600 seconds = 10 minutes
-    await asyncio.sleep(600)
+    await asyncio.sleep(300)
     
     print(f"🗑️ WELCOME DEBUG: 10 minutes passed! Attempting to delete message {message_id} in chat {chat_id}...")
     try:

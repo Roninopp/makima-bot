@@ -3,7 +3,7 @@ import random
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import FloodWait
-from pyrogram.enums import ChatMemberStatus, ChatMembersFilter
+from pyrogram.enums import ChatMemberStatus, ChatMembersFilter, ParseMode # Added ParseMode here!
 
 # Hooking directly into your AnonXMusic core!
 from AnonXMusic import app
@@ -85,7 +85,8 @@ async def mention_users(client: Client, message: Message, members: list, text: s
         mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={user.id})" for user in batch])
         try:
             msg_text = f"{text}\n\n{mentions}" if text else mentions
-            await client.send_message(chat_id, msg_text)
+            # 🚨 FIX: Force ParseMode.MARKDOWN so the emoji brackets become clickable links!
+            await client.send_message(chat_id, msg_text, parse_mode=ParseMode.MARKDOWN)
             mentioned_count += len(batch)
             await asyncio.sleep(1.5 if mode == "normal" else 0.8 if mode == "fast" else 2)
         except FloodWait as e:
@@ -194,7 +195,8 @@ async def admintag(client: Client, message: Message):
         return
     mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={admin.id})" for admin in admins])
     msg_text = f"{text}\n\n{mentions}"
-    await message.reply_text(msg_text)
+    # 🚨 FIX: Markdown here too!
+    await message.reply_text(msg_text, parse_mode=ParseMode.MARKDOWN)
     await status_msg.delete()
 
 @app.on_message(filters.command("botstag", prefixes=["/", "!", "."]) & filters.group)
@@ -217,10 +219,10 @@ async def botstag(client: Client, message: Message):
         return
     mentions = " ".join([f"[{random.choice(MENTION_EMOJIS)}](tg://user?id={bot.id})" for bot in bots])
     msg_text = f"{text}\n\n{mentions}"
-    await message.reply_text(msg_text)
+    # 🚨 FIX: Markdown here too!
+    await message.reply_text(msg_text, parse_mode=ParseMode.MARKDOWN)
     await status_msg.delete()
 
-# Fixed for AnonXMusic's dynamic help menu builder!
 __MODULE__ = "TagAll"
 __HELP__ = """
 **📢 Mention All Module:**

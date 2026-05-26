@@ -84,6 +84,21 @@ def help_pannel(_, is_sudo, START: Union[bool, int] = None):
                     text=_["H_B_15"],
                     callback_data="help_callback hb15",
                 ),
+            ],
+            # 🚀 OUR CUSTOM MODULES ROW (Perfectly matches the 3-button grid!)
+            [
+                InlineKeyboardButton(
+                    text="Whisper",
+                    callback_data="help_callback Whisper",
+                ),
+                InlineKeyboardButton(
+                    text="TagAll",
+                    callback_data="help_callback TagAll",
+                ),
+                InlineKeyboardButton(
+                    text="Welcome",
+                    callback_data="help_callback Welcome",
+                ),
             ]
         ]
     

@@ -14,7 +14,7 @@ import config
 
 welcome_db = mongodb.welcome_status
 
-print("✅ WELCOME.PY: Loaded successfully! Native Animated Emoji Active.")
+print("✅ WELCOME.PY: Loaded successfully! Auto-Delete & Native Emoji Active.")
 
 BACKGROUND_URL = "https://i.ibb.co/gZ6c84TL/Gemini-Generated-Image-8y28q28y28q28y28.png"
 FONT_URL = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
@@ -29,6 +29,16 @@ def circle_crop(image):
     result = Image.new('RGBA', image.size, (0, 0, 0, 0))
     result.paste(image, (0, 0), mask)
     return result
+
+# 🚀 BACKGROUND TASK: Silently waits 15 minutes, then deletes the specific welcome message
+async def auto_delete_welcome(client, chat_id, message_id):
+    # 900 seconds = 15 minutes. (Change this to 720 if you prefer 12 minutes!)
+    await asyncio.sleep(900)
+    try:
+        await client.delete_messages(chat_id=chat_id, message_ids=message_id)
+        print(f"🗑️ WELCOME DEBUG: Auto-deleted message {message_id} in {chat_id}")
+    except Exception as e:
+        print(f"⚠️ WELCOME DEBUG: Could not auto-delete message: {e}")
 
 @app.on_message(filters.command("welcome") & filters.group)
 async def welcome_toggle(client, message):
@@ -131,6 +141,17 @@ async def process_welcome(client, chat, user):
                         print(f"🔥 HTTP API BYPASS FAILED: {await resp.text()}")
                     else:
                         print("✅ WELCOME DEBUG: SUCCESS! Card sent with native custom emoji.")
+                        
+                        # 🚀 GRAB THE MESSAGE ID & START THE AUTO-DELETE TIMER!
+                        try:
+                            response_data = await resp.json()
+                            if response_data.get("ok"):
+                                message_id = response_data["result"]["message_id"]
+                                # Send to the background task to wait 15 minutes and delete it
+                                asyncio.create_task(auto_delete_welcome(client, chat.id, message_id))
+                        except Exception as parse_err:
+                            print(f"⚠️ Could not parse response for auto-delete: {parse_err}")
+                            
         except Exception as e:
             print(f"🔥 HTTP REQUEST CRASHED: {e}")
 

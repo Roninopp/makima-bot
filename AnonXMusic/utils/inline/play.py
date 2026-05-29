@@ -1,6 +1,7 @@
 import math
 from pyrogram.types import InlineKeyboardButton
 from AnonXMusic.utils.formatters import time_to_seconds
+from AnonXMusic import app
 
 def track_markup(_, videoid, user_id, channel, fplay):
     buttons = [
@@ -18,6 +19,13 @@ def track_markup(_, videoid, user_id, channel, fplay):
             InlineKeyboardButton(
                 text=f"❌ {_['CLOSE_BUTTON']}",
                 callback_data=f"forceclose {videoid}|{user_id}",
+            )
+        ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
             )
         ],
     ]
@@ -62,6 +70,13 @@ def stream_markup_timer(_, chat_id, played, dur):
             InlineKeyboardButton(text="⏭", callback_data=f"ADMIN Skip|{chat_id}"),
             InlineKeyboardButton(text="⏹", callback_data=f"ADMIN Stop|{chat_id}"),
         ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
+            )
+        ],
     ]
     return buttons
 
@@ -73,6 +88,13 @@ def stream_markup(_, chat_id):
             InlineKeyboardButton(text="↻", callback_data=f"ADMIN Replay|{chat_id}"),
             InlineKeyboardButton(text="⏭", callback_data=f"ADMIN Skip|{chat_id}"),
             InlineKeyboardButton(text="⏹", callback_data=f"ADMIN Stop|{chat_id}"),
+        ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
+            )
         ],
     ]
     return buttons
@@ -95,6 +117,13 @@ def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
                 callback_data=f"forceclose {videoid}|{user_id}",
             ),
         ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
+            )
+        ],
     ]
     return buttons
 
@@ -111,6 +140,13 @@ def livestream_markup(_, videoid, user_id, mode, channel, fplay):
                 text=f"❌ {_['CLOSE_BUTTON']}",
                 callback_data=f"forceclose {videoid}|{user_id}",
             ),
+        ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
+            )
         ],
     ]
     return buttons
@@ -141,6 +177,13 @@ def slider_markup(_, videoid, user_id, query, query_type, channel, fplay):
                 text="▷",
                 callback_data=f"slider F|{query_type}|{query}|{user_id}|{channel}|{fplay}",
             ),
+        ],
+        # 🚀 OUR CUSTOM ADD TO GROUP BUTTON
+        [
+            InlineKeyboardButton(
+                text="➕ Add Me To Your Group",
+                url=f"https://t.me/{app.username}?startgroup=true"
+            )
         ],
     ]
     return buttons

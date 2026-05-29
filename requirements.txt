@@ -8,7 +8,7 @@ hachoir>=3.2.0
 heroku3>=5.2.0
 httpx==0.28.1
 motor==3.7.1
-numpy==2.4.4
+numpy
 opencv-python==4.13.0.92
 pillow==12.1.1
 psutil>=5.9.0
